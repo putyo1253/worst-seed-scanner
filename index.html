@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html class="dark" lang="ja">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Worst Seed Scanner // ULTIMATE_EVIL</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f2590d",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#1a0f0a",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .glitch-scanline {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.05;
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .scanning-active {
+            animation: pulse-red 1s infinite;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+    <div class="glitch-scanline fixed inset-0"></div>
+    
+    <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <!-- Header Section -->
+            <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 px-6 md:px-20 py-4 bg-background-light dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+                <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-3 text-primary">
+                        <span class="material-symbols-outlined text-3xl">skull</span>
+                        <h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">Worst Seed Scanner</h2>
+                    </div>
+                </div>
+                <div class="flex flex-1 justify-end gap-6 items-center">
+                    <div id="statusIndicator" class="flex items-center gap-2 text-sm font-medium text-slate-500">
+                        <span class="size-2 rounded-full bg-green-500"></span>
+                        WASM Engine Ready
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-[1200px] mx-auto w-full px-6 py-8">
+                <!-- Hero Header -->
+                <div class="flex flex-wrap justify-between items-end gap-6 mb-8">
+                    <div class="flex flex-col gap-2">
+                        <h1 class="text-slate-900 dark:text-slate-100 text-5xl font-black leading-tight tracking-tight">
+                            <span class="text-primary">1.16.1</span> RTA Torture
+                        </h1>
+                        <p class="text-slate-500 dark:text-slate-400 text-lg">Real-time seed scanning using your local CPU power.</p>
+                    </div>
+                </div>
+
+                <!-- Main Action Area -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                    <!-- Left: Control Panel -->
+                    <div class="lg:col-span-1 flex flex-col gap-6">
+                        <div class="bg-slate-100 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">settings</span>
+                                Scan Settings
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-500 mb-2">Target Difficulty</label>
+                                    <select id="badnessLevel" class="w-full bg-slate-200 dark:bg-slate-900 border-none rounded-lg text-sm focus:ring-primary">
+                                        <option value="1">LV.1 - Annoying</option>
+                                        <option value="3">LV.3 - Severe</option>
+                                        <option value="5">LV.5 - Hell</option>
+                                        <option value="6" selected>LV.MAX - Impossible</option>
+                                    </select>
+                                </div>
+
+                                <div class="pt-4">
+                                    <button id="searchBtn" class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined">bolt</span>
+                                        EXECUTE SCAN
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Stats -->
+                        <div id="scanStats" class="hidden bg-slate-100 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary scanning-active">analytics</span>
+                                Scanning Progress
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-slate-500">Seeds Checked</span>
+                                    <span id="seedsChecked" class="font-mono font-bold text-primary">0</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-slate-500">Hash Rate</span>
+                                    <span id="hashRate" class="font-mono font-bold">0 seeds/s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Result Display -->
+                    <div class="lg:col-span-2 flex flex-col gap-6">
+                        <div id="resultCard" class="bg-slate-100 dark:bg-slate-800/50 p-8 rounded-2xl border border-primary/20 min-h-[400px] flex flex-col items-center justify-center text-center relative overflow-hidden">
+                            <!-- Empty State -->
+                            <div id="emptyState" class="flex flex-col items-center gap-4">
+                                <span class="material-symbols-outlined text-6xl text-slate-700 dark:text-slate-600">search_off</span>
+                                <p class="text-slate-500">Select your criteria and start the scan to find a cursed seed.</p>
+                            </div>
+
+                            <!-- Found State (Hidden by default) -->
+                            <div id="foundState" class="hidden w-full space-y-8">
+                                <div class="space-y-2">
+                                    <span class="text-sm font-bold text-primary uppercase tracking-widest">Cursed Seed Found</span>
+                                    <h2 id="foundSeed" class="text-5xl md:text-6xl font-black font-mono break-all cursor-pointer hover:text-primary transition-colors" title="Click to copy">
+                                        -847291057392
+                                    </h2>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                                    <div class="p-4 rounded-xl bg-slate-200 dark:bg-slate-900/50 border-l-4 border-primary">
+                                        <h4 class="font-bold text-sm text-primary mb-1 uppercase">Despair Factors</h4>
+                                        <ul id="reasonList" class="text-sm space-y-1 text-slate-600 dark:text-slate-400">
+                                            <!-- Dynamic items -->
+                                        </ul>
+                                    </div>
+                                    <div class="p-4 rounded-xl bg-slate-200 dark:bg-slate-900/50 border-l-4 border-slate-500">
+                                        <h4 class="font-bold text-sm text-slate-500 mb-1 uppercase">Analysis</h4>
+                                        <p id="tauntMsg" class="text-sm italic text-slate-600 dark:text-slate-400">
+                                            "Still planning to run this? I'd suggest a hobby like watching paint dry instead."
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-4">
+                                    <button onclick="window.open('https://www.chunkbase.com/apps/seed-map#' + document.getElementById('foundSeed').innerText, '_blank')" class="flex-1 bg-slate-200 dark:bg-slate-700 font-bold py-3 rounded-lg hover:bg-primary hover:text-white transition-all">
+                                        VIEW ON MAP
+                                    </button>
+                                    <button id="copyBtn" class="flex-1 bg-slate-200 dark:bg-slate-700 font-bold py-3 rounded-lg hover:bg-primary hover:text-white transition-all">
+                                        COPY SEED
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="border-t border-slate-200 dark:border-slate-800 py-10 px-6 md:px-20 bg-slate-100 dark:bg-background-dark/80">
+                <div class="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="flex items-center gap-2 text-primary">
+                        <span class="material-symbols-outlined">skull</span>
+                        <span class="font-bold">Worst Seed Scanner © 2026</span>
+                    </div>
+                    <div class="text-sm text-slate-500">
+                        Powered by Cubiomes Wasm Engine // Made by putyo1253
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script type="module">
+
+        class SeedScanner {
+            constructor() {
+                this.workers = [];
+                this.numWorkers = Math.min(navigator.hardwareConcurrency || 4, 8);
+                this.isSearching = false;
+                this.seedsChecked = 0;
+                this.startTime = 0;
+                this.onResult = null;
+                this.onProgress = null;
+            }
+
+            async init() {
+                return new Promise((resolve, reject) => {
+                    let loadedCount = 0;
+                    const timeout = setTimeout(() => reject("Worker loading timeout"), 10000);
+                    
+                    for (let i = 0; i < this.numWorkers; i++) {
+                        const worker = new Worker('engine.js');
+                        worker.onmessage = (e) => {
+                            if (e.data.kind === "DONE_LOADING") {
+                                loadedCount++;
+                                if (loadedCount === this.numWorkers) {
+                                    clearTimeout(timeout);
+                                    resolve();
+                                }
+                            } else {
+                                this.handleMessage(e.data, worker);
+                            }
+                        };
+                        worker.onerror = (err) => {
+                            console.error("Worker error:", err);
+                            reject(err);
+                        };
+                        this.workers.push(worker);
+                    }
+                });
+            }
+
+            handleMessage(data, worker) {
+                if (!this.isSearching) return;
+
+                if (data.kind === "DONE_GET_BIOMES" || data.kind === "DONE_FIND_STRUCTURES") {
+                    this.seedsChecked++;
+                    if (data.data && data.data.seed !== -1 && data.data.seed !== undefined) {
+                        const foundSeed = data.data.seed;
+                        this.stop();
+                        if (this.onResult) this.onResult(foundSeed);
+                    } else {
+                        this.requestNext(worker);
+                    }
+                    this.updateProgress();
+                }
+            }
+
+            updateProgress() {
+                if (this.onProgress) {
+                    const elapsed = (Date.now() - this.startTime) / 1000;
+                    this.onProgress({
+                        seedsChecked: this.seedsChecked,
+                        speed: Math.floor(this.seedsChecked / Math.max(elapsed, 0.1))
+                    });
+                }
+            }
+
+            start() {
+                if (this.isSearching) return;
+                this.isSearching = true;
+                this.seedsChecked = 0;
+                this.startTime = Date.now();
+                this.workers.forEach(w => this.requestNext(w));
+            }
+
+            stop() {
+                this.isSearching = false;
+            }
+
+            requestNext(worker) {
+                if (!this.isSearching) return;
+                const randomSeed = Math.floor(Math.random() * 1000000000);
+                worker.postMessage({
+                    kind: "GET_BIOMES",
+                    data: {
+                        mcVersion: 16,
+                        biomes: [0, 24],
+                        x: 0, z: 0, widthX: 1, widthZ: 1,
+                        startingSeed: randomSeed,
+                        dimension: 0, yHeight: 64
+                    }
+                });
+            }
+        }
+        const scanner = new SeedScanner();
+    
+
+        const searchBtn = document.getElementById('searchBtn');
+        const foundSeed = document.getElementById('foundSeed');
+        const foundState = document.getElementById('foundState');
+        const emptyState = document.getElementById('emptyState');
+        const scanStats = document.getElementById('scanStats');
+        const seedsCheckedEl = document.getElementById('seedsChecked');
+        const hashRateEl = document.getElementById('hashRate');
+        const reasonList = document.getElementById('reasonList');
+        const tauntMsg = document.getElementById('tauntMsg');
+
+        const TAUNTS = [
+            "Still planning to run this? I'd suggest a hobby like watching paint dry instead.",
+            "This seed is a literal war crime. Your PC is crying.",
+            "I've seen bad RNG, but this is a personal insult from the universe.",
+            "You might as well delete Minecraft now. It's over.",
+            "Statistical probability of completion: 0.0000001%. So you're saying there's a chance?",
+            "Just go to sleep. Seriously."
+        ];
+
+        const REASONS = [
+            "No village within 2500m", "Deep Frozen Ocean spawn", "Zero iron in spawn chests",
+            "Stronghold buried in Deep Ocean", "Nether spawn in Basalt Deltas",
+            "Fortress 1500m away from portal", "0-eye portal room",
+            "Bastion is a 'Hoglin Stable' variant", "Nearest tree is 1200 blocks away",
+            "Perch rate set to 'Infinite Suffering'"
+        ];
+
+        scanner.init().then(() => {
+            document.getElementById('statusIndicator').innerHTML = '<span class="size-2 rounded-full bg-green-500"></span> WASM Engine Ready';
+        }).catch(e => {
+            document.getElementById('statusIndicator').innerHTML = '<span class="size-2 rounded-full bg-red-500"></span> WASM Engine Error';
+        });
+
+        searchBtn.addEventListener('click', () => {
+            if (scanner.isSearching) {
+                scanner.stop();
+                searchBtn.innerHTML = '<span class="material-symbols-outlined">bolt</span> EXECUTE SCAN';
+                searchBtn.classList.remove('bg-red-600');
+                searchBtn.classList.add('bg-primary');
+                scanStats.classList.add('hidden');
+            } else {
+                foundState.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                scanStats.classList.remove('hidden');
+                searchBtn.innerHTML = '<span class="material-symbols-outlined">stop</span> ABORT SCAN';
+                searchBtn.classList.remove('bg-primary');
+                searchBtn.classList.add('bg-red-600');
+                
+                scanner.onProgress = (stats) => {
+                    seedsCheckedEl.innerText = stats.seedsChecked.toLocaleString();
+                    hashRateEl.innerText = stats.speed.toLocaleString() + ' seeds/s';
+                };
+
+                scanner.onResult = (seed) => {
+                    foundSeed.innerText = seed;
+                    emptyState.classList.add('hidden');
+                    foundState.classList.remove('hidden');
+                    scanStats.classList.add('hidden');
+                    searchBtn.innerHTML = '<span class="material-symbols-outlined">bolt</span> EXECUTE SCAN';
+                    searchBtn.classList.remove('bg-red-600');
+                    searchBtn.classList.add('bg-primary');
+                    
+                    tauntMsg.innerText = '"' + TAUNTS[Math.floor(Math.random() * TAUNTS.length)] + '"';
+                    const numReasons = parseInt(document.getElementById('badnessLevel').value) + 1;
+                    reasonList.innerHTML = REASONS.sort(() => 0.5 - Math.random()).slice(0, numReasons).map(r => `<li>• ${r}</li>`).join('');
+                };
+                scanner.start();
+            }
+        });
+
+        foundSeed.addEventListener('click', () => {
+            navigator.clipboard.writeText(foundSeed.innerText);
+            const original = foundSeed.innerText;
+            foundSeed.innerText = "COPIED!";
+            setTimeout(() => foundSeed.innerText = original, 1000);
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(foundSeed.innerText);
+            alert("Seed copied to clipboard!");
+        });
+    
+</script>
+</body>
+</html>
